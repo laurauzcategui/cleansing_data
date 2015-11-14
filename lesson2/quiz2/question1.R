@@ -1,5 +1,7 @@
 library(httr)
 
+#get from github API the repos info from jtleek
+#get the created_at for datasharing repo
 
 oauth_endpoints("github")
 
