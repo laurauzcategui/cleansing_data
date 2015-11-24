@@ -10,15 +10,16 @@
 # Original data sources:
 # http://data.worldbank.org/data-catalog/GDP-ranking-table
 # http://data.worldbank.org/data-catalog/ed-stats
+
 library(dplyr)
-
+ 
 downloadFile <- function(fURL, dir,method,fname) {
-
+  
   if (!file.exists(dir)){
     dir.create(dir)
     destfile <- paste0('./',dir,'/',fname)
     file <- download.file(fURL,destfile=destfile,method=method)
-
+    
     dateDownload <- date()
   } else {
     destfile <- paste0('./',dir,'/',fname)
@@ -46,29 +47,7 @@ grossProduct <- read.csv("./data/gdp.csv", header = FALSE, sep = ",", skip=5)
 #dateEducational <- downloadFile("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv","data","curl","country.csv")
 educational <- read.csv("./data/country.csv", header = TRUE, sep = ",")
 
-#good countries
-good <- grossProduct[,"V1"] != ""
-grossProduct <- grossProduct[good,]
+highOECD <- educational[educational$"Income.Group" ==  "High income: OECD",]
+highNO <- educational[educational$"Income.Group" == "High income: nonOECD",]
+mergedDS <- merge(highOECD,highNO,all=TRUE)
 
-
-#both countries
-bothCountries <- grossProduct$V1 %in% educational$CountryCode
-countriesIn <- grossProduct[bothCountries,]
-
-na_ranked <- is.na(ranked(countriesIn$V2))
-na_ranks <- is.na(ranks(countriesIn$V5))
-
-finalGross <- countriesIn[!na_ranks,]
-finalGross <- finalGross[!na_ranked,]
-
-ranked <- ranked(finalGross$V2)
-na_ranked <- is.na(ranked)
-
-ranks <- ranks(finalGross$V5)
-na_ranks <- is.na(ranks)
-
-
-finalGross <- cbind(finalGross,ranks=ranks[!na_ranks])
-finalGross <- cbind(finalGross,ranked=ranked[!na_ranked])
-
-pos13 <- arrange(finalGross,desc(ranked))[13,]
