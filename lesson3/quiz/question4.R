@@ -41,13 +41,31 @@ ranked <- function(col){
 
 #reading Gross Domestic Product
 #dateGross <- downloadFile("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv","data","curl","gdp.csv")
-grossProduct <- read.csv("./data/gdp.csv", header = FALSE, sep = ",", skip=5)
+grossProduct <- read.csv("gdp.csv", header = FALSE, sep = ",", skip=5)
 
 #reding educational data
 #dateEducational <- downloadFile("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv","data","curl","country.csv")
-educational <- read.csv("./data/country.csv", header = TRUE, sep = ",")
+educational <- read.csv("country.csv", header = TRUE, sep = ",")
 
 highOECD <- educational[educational$"Income.Group" ==  "High income: OECD",]
 highNO <- educational[educational$"Income.Group" == "High income: nonOECD",]
 mergedDS <- merge(highOECD,highNO,all=TRUE)
+bothCountries <- grossProduct$V1 %in% mergedDS$CountryCode
+countriesIn <- grossProduct[bothCountries,]
+
+na_ranked <- is.na(ranked(countriesIn$V2))
+na_ranks <- is.na(ranks(countriesIn$V5))
+
+finalGross <- countriesIn[!na_ranks,]
+finalGross <- finalGross[!na_ranked,]
+
+ranked <- ranked(finalGross$V2)
+na_ranked <- is.na(ranked)
+
+ranks <- ranks(finalGross$V5)
+na_ranks <- is.na(ranks)
+
+
+finalGross <- cbind(finalGross,ranks=ranks[!na_ranks])
+finalGross <- cbind(finalGross,ranked=ranked[!na_ranked])
 
