@@ -12,7 +12,7 @@
 # http://data.worldbank.org/data-catalog/ed-stats
 
 library(dplyr)
- 
+
 downloadFile <- function(fURL, dir,method,fname) {
   
   if (!file.exists(dir)){
@@ -39,20 +39,13 @@ ranked <- function(col){
   return(ranked)
 }
 
-#reading Gross Domestic Product
-#dateGross <- downloadFile("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv","data","curl","gdp.csv")
-grossProduct <- read.csv("gdp.csv", header = FALSE, sep = ",", skip=5)
-
-#reding educational data
-#dateEducational <- downloadFile("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv","data","curl","country.csv")
-educational <- read.csv("country.csv", header = TRUE, sep = ",")
-
-highOECD <- educational[educational$"Income.Group" ==  "High income: OECD",]
-highNO <- educational[educational$"Income.Group" == "High income: nonOECD",]
+#good countries
+good <- grossProduct[,"V1"] != ""
+grossProduct <- grossProduct[good,]
 
 
-mergedDS <- merge(highOECD,highNO,all=TRUE)
-bothCountries <- grossProduct$V1 %in% mergedDS$CountryCode
+#both countries
+bothCountries <- grossProduct$V1 %in% educational$CountryCode
 countriesIn <- grossProduct[bothCountries,]
 
 na_ranked <- is.na(ranked(countriesIn$V2))
@@ -61,24 +54,18 @@ na_ranks <- is.na(ranks(countriesIn$V5))
 finalGross <- countriesIn[!na_ranks,]
 finalGross <- finalGross[!na_ranked,]
 
-
-oecdTemp <- finalGross[finalGross$V1 %in% highOECD$CountryCode,]
-oecd <- cbind(oecdTemp,type="OECD")
-
-noedcTemp <- finalGross[finalGross$V1 %in% highNO$CountryCode,]
-noedc <- cbind(noedcTemp,type="NO OECD") 
-
-mergedDF <- merge(oecd,noedc,all=TRUE)
-
-ranked <- ranked(mergedDF$V2)
+ranked <- ranked(finalGross$V2)
 na_ranked <- is.na(ranked)
 
-ranks <- ranks(mergedDF$V5)
+ranks <- ranks(finalGross$V5)
 na_ranks <- is.na(ranks)
 
 
-mergedDF <- cbind(mergedDF,ranks=ranks[!na_ranks])
-mergedDF <- cbind(mergedDF,ranked=ranked[!na_ranked])
+finalGross <- cbind(finalGross,ranks=ranks[!na_ranks])
+finalGross <- cbind(finalGross,ranked=ranked[!na_ranked])
 
-groupType <- group_by(mergedDF,type)
+
+finalGross$RankGroup <-  cut2(finalGross$ranked,g=5)
+table(edu$Income.Group,cutGroup)
+
 
